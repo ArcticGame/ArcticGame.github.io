@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arctic Game</title>
+<meta name="description" content="Arctic Game — 퍼즐부터 디펜스까지, 아트와 사운드까지 직접 만드는 인디 게임 스튜디오">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9D%84%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root {
+    --bg: #EDF3F8;
+    --surface: #FFFFFF;
+    --surface-2: #E2ECF3;
+    --ink: #122A3A;
+    --ink-soft: #4A6274;
+    --line: #C9DAE6;
+    --accent: #1878A8;
+    --accent-ink: #0F5C82;
+    --aurora-g: #2FBF9B;
+    --aurora-v: #8A7BF0;
+    --chip-bg: #DCEAF3;
+    --shadow: 0 2px 12px rgba(18, 42, 58, 0.08);
+    /* 히어로는 테마와 무관하게 극야(polar night) 고정 */
+    --night: #071220;
+    --night-ink: #E8F2FA;
+    --night-soft: #9FB8CC;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0A1622;
+      --surface: #12222F;
+      --surface-2: #0E1C28;
+      --ink: #E3EEF6;
+      --ink-soft: #8FA9BB;
+      --line: #20374A;
+      --accent: #4FB7DF;
+      --accent-ink: #7CCBE8;
+      --chip-bg: #1A2E3E;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0A1622;
+    --surface: #12222F;
+    --surface-2: #0E1C28;
+    --ink: #E3EEF6;
+    --ink-soft: #8FA9BB;
+    --line: #20374A;
+    --accent: #4FB7DF;
+    --accent-ink: #7CCBE8;
+    --chip-bg: #1A2E3E;
+    --shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: "Jua", "Apple SD Gothic Neo", sans-serif; font-weight: 400; text-wrap: balance; }
+  a { color: var(--accent-ink); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  .mono {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── 히어로 (극야) ─────────────────────────── */
+  .hero {
+    position: relative;
+    background: var(--night);
+    color: var(--night-ink);
+    overflow: hidden;
+  }
+  .hero canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  #aurora { filter: blur(34px) saturate(1.25); opacity: 0.85; }
+  .hero-inner { position: relative; z-index: 2; }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 0;
+  }
+  .wordmark {
+    font-family: "Jua", sans-serif;
+    font-size: 1.25rem;
+    color: var(--night-ink);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark svg { flex: none; }
+  .nav-right { display: flex; align-items: center; gap: 26px; }
+  .nav-links { display: flex; gap: 26px; }
+  .nav-links a {
+    color: var(--night-soft);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .nav-links a:hover { color: var(--night-ink); }
+
+  .lang-switch {
+    display: flex;
+    gap: 3px;
+    border: 1px solid rgba(159, 184, 204, 0.35);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .lang-switch button {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    background: none;
+    border: none;
+    color: var(--night-soft);
+    border-radius: 999px;
+    padding: 4px 11px;
+    cursor: pointer;
+  }
+  .lang-switch button:hover { color: var(--night-ink); }
+  .lang-switch button[aria-pressed="true"] {
+    background: var(--night-ink);
+    color: var(--night);
+  }
+
+  .hero-body { padding: 88px 0 130px; max-width: 640px; }
+  .hero-eyebrow { color: var(--aurora-g); margin-bottom: 18px; }
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+  .hero h1 .glow { color: #A9E8D8; }
+  .hero p.lede {
+    color: var(--night-soft);
+    font-size: 1.05rem;
+    max-width: 34em;
+    margin-bottom: 36px;
+  }
+  .cta {
+    display: inline-block;
+    background: var(--aurora-g);
+    color: #05231B;
+    font-family: "Jua", sans-serif;
+    font-size: 1.05rem;
+    text-decoration: none;
+    padding: 13px 30px;
+    border-radius: 999px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(47, 191, 155, 0.4); }
+
+  .hero-stats {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 48px;
+    padding-bottom: 56px;
+  }
+  .hero-stats div { display: flex; flex-direction: column; }
+  .hero-stats .num {
+    font-family: "Jua", sans-serif;
+    font-size: 1.7rem;
+    color: var(--night-ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-stats .label { color: var(--night-soft); font-size: 0.82rem; }
+
+  /* 히어로 아래 빙하 능선 */
+  .ridge { display: block; width: 100%; height: 70px; margin-top: -1px; }
+
+  /* ── 섹션 공통 ─────────────────────────────── */
+  section { padding: 72px 0; }
+  .sec-eyebrow { color: var(--accent-ink); margin-bottom: 10px; }
+  .sec-title { font-size: clamp(1.6rem, 3.5vw, 2.2rem); margin-bottom: 14px; }
+  .sec-desc { color: var(--ink-soft); max-width: 42em; }
+
+  /* ── 스튜디오 ─────────────────────────────── */
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 40px;
+  }
+  .pillar {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px 24px;
+    box-shadow: var(--shadow);
+  }
+  .pillar h3 { font-size: 1.15rem; margin: 14px 0 8px; }
+  .pillar p { color: var(--ink-soft); font-size: 0.92rem; }
+  .pillar .mark {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--aurora-g), var(--accent));
+  }
+  .pillar .mark svg { display: block; }
+
+  /* ── 게임 그리드 ───────────────────────────── */
+  #games { background: var(--surface-2); }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 30px 0 26px;
+  }
+  .filters button {
+    font-family: "IBM Plex Sans KR", sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 16px;
+    cursor: pointer;
+  }
+  .filters button:hover { color: var(--ink); }
+  .filters button[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #F2FAFE;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 0.15s ease;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card.hide { display: none; }
+  .card-top { display: flex; align-items: center; gap: 14px; }
+  .app-icon {
+    flex: none;
+    width: 52px; height: 52px;
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    background: linear-gradient(145deg, hsl(var(--h), 62%, 62%), hsl(calc(var(--h) + 28), 58%, 46%));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .card h3 { font-size: 1.08rem; line-height: 1.3; }
+  .chip {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--accent-ink);
+    background: var(--chip-bg);
+    border-radius: 999px;
+    padding: 2px 10px;
+    margin-top: 3px;
+  }
+  .card p { color: var(--ink-soft); font-size: 0.88rem; }
+
+  /* ── 문의 ──────────────────────────────────── */
+  .contact-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 40px 32px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .contact-box .links { display: flex; flex-wrap: wrap; gap: 12px; }
+  .contact-box a.btn {
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.92rem;
+    padding: 10px 22px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+  .contact-box a.btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #F2FAFE;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    color: var(--ink-soft);
+    font-size: 0.85rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 560px) {
+    .nav-links { display: none; }
+    .hero-body { padding: 56px 0 90px; }
+    section { padding: 56px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <canvas id="aurora" aria-hidden="true"></canvas>
+  <canvas id="snow" aria-hidden="true"></canvas>
+  <div class="wrap hero-inner">
+    <nav class="nav" aria-label="주요 메뉴" data-i18n-aria="aria.nav">
+      <a class="wordmark" href="#">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2v20M4 6l16 12M20 6L4 18M12 6l-3-2m3 2 3-2M12 18l-3 2m3-2 3 2M6.4 7.8 5 4.6m2.9 11L4.6 17m12.5-9.2L18.4 4.6m-1.5 11 3.5 1.4" stroke="#A9E8D8" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        ARCTIC GAME
+      </a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="#studio" data-i18n="nav.studio">스튜디오</a>
+          <a href="#games" data-i18n="nav.games">게임</a>
+          <a href="#contact" data-i18n="nav.contact">문의</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="hero-body">
+      <p class="mono hero-eyebrow">Indie Game Studio</p>
+      <h1 data-i18n-html="hero.title">빙하처럼 단단하게,<br><span class="glow">오로라처럼 빛나게.</span></h1>
+      <p class="lede" data-i18n="hero.lede">Arctic Game은 퍼즐부터 디펜스, 방치형 RPG까지 —
+        모든 코드와 아트, 사운드를 직접 만드는 인디 게임 스튜디오입니다.
+        가벼운 빌드로 모바일과 데스크톱, 웹을 넘나듭니다.</p>
+      <a class="cta" href="#games" data-i18n="hero.cta">게임 보러 가기</a>
+    </div>
+
+    <div class="wrap hero-stats" style="padding-left:0;padding-right:0">
+      <div><span class="num">18</span><span class="label" data-i18n="stats.games">개발 중인 게임</span></div>
+      <div><span class="num">6</span><span class="label" data-i18n="stats.platforms">지원 플랫폼</span></div>
+      <div><span class="num">100%</span><span class="label" data-i18n="stats.assets">오리지널 아트 · 사운드</span></div>
+    </div>
+  </div>
+  <svg class="ridge" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 70 L0 42 L180 18 L340 48 L520 8 L700 38 L880 14 L1060 44 L1240 20 L1440 40 L1440 70 Z" fill="var(--bg)"/>
+  </svg>
+</header>
+
+<main>
+  <section id="studio">
+    <div class="wrap">
+      <p class="mono sec-eyebrow">Studio</p>
+      <h2 class="sec-title" data-i18n="studio.title">작은 팀, 얼음처럼 매끄러운 게임</h2>
+      <p class="sec-desc" data-i18n="studio.desc">유행하는 장르를 빠르게 연구하고, 메커니즘은 배우되 아트·사운드·이름은
+        전부 새로 만듭니다. 가벼운 네이티브 빌드로 어떤 기기에서든 부드럽게 돌아가는 게임이 목표입니다.</p>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6 3 12l5 6M16 6l5 6-5 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3 data-i18n="pillar1.t">가볍고 빠르게</h3>
+          <p data-i18n="pillar1.d">가벼운 네이티브 빌드로 iOS · Android · macOS · Windows · Linux · 웹까지 하나의 코드로 대응합니다.</p>
+        </div>
+        <div class="pillar">
+          <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.5 6 6.5.5-5 4.3 1.6 6.2L12 16.5 6.4 20l1.6-6.2-5-4.3 6.5-.5L12 3Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+          <h3 data-i18n="pillar2.t">100% 오리지널 에셋</h3>
+          <p data-i18n="pillar2.d">모든 게임의 아트와 사운드, 이름을 직접 제작합니다. 절차 생성과 AI 파이프라인을 적극 활용해 작은 팀의 속도를 냅니다.</p>
+        </div>
+        <div class="pillar">
+          <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
+          <h3 data-i18n="pillar3.t">빠른 실험, 넓은 장르</h3>
+          <p data-i18n="pillar3.d">퍼즐, 디펜스, 카드, 방치형, 서바이벌 — 장르를 가리지 않고 프로토타입에서 출시까지 짧은 주기로 달립니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="games">
+    <div class="wrap">
+      <p class="mono sec-eyebrow">Games</p>
+      <h2 class="sec-title" data-i18n="games.title">지금 만들고 있는 게임들</h2>
+      <p class="sec-desc" data-i18n="games.desc">18종의 게임이 개발·출시 준비 중입니다. 장르별로 골라 보세요.</p>
+
+      <div class="filters" role="group" aria-label="장르 필터" data-i18n-aria="aria.filters">
+        <button type="button" data-filter="all" aria-pressed="true" data-i18n="filter.all">전체</button>
+        <button type="button" data-filter="puzzle" aria-pressed="false" data-i18n="filter.puzzle">퍼즐</button>
+        <button type="button" data-filter="defense" aria-pressed="false" data-i18n="filter.defense">디펜스</button>
+        <button type="button" data-filter="idle" aria-pressed="false" data-i18n="filter.idle">방치형 · 전략</button>
+        <button type="button" data-filter="card" aria-pressed="false" data-i18n="filter.card">카드 · 보드</button>
+        <button type="button" data-filter="action" aria-pressed="false" data-i18n="filter.action">액션 · 아케이드</button>
+      </div>
+
+      <div class="grid">
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 8">💥</div>
+            <div><h3>BlockPop</h3><span class="chip" data-i18n="g.blockpop.c">탭 블라스트 퍼즐</span></div>
+          </div>
+          <p data-i18n="g.blockpop.d">같은 색 블록을 탭해서 한 번에 터뜨리는 시원한 블라스트 퍼즐.</p>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 210">🧱</div>
+            <div><h3>BlockPuz</h3><span class="chip" data-i18n="g.blockpuz.c">8×8 블록 퍼즐</span></div>
+          </div>
+          <p data-i18n="g.blockpuz.d">8×8 보드에 조각을 채우고 줄을 지우는 클래식 블록 퍼즐.</p>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 190">🫧</div>
+            <div><h3>BubblePop</h3><span class="chip" data-i18n="g.bubblepop.c">버블 슈터</span></div>
+          </div>
+          <p data-i18n="g.bubblepop.d">조준하고, 쏘고, 터뜨리는 클래식 버블 슈터.</p>
+        </article>
+        <article class="card" data-cat="idle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 30">🏰</div>
+            <div><h3>ClanIdle</h3><span class="chip" data-i18n="g.clanidle.c">건설 · 약탈 전략</span></div>
+          </div>
+          <p data-i18n="g.clanidle.d">마을을 짓고 AI 마을을 약탈하는 네트워크 없는 싱글 전략.</p>
+        </article>
+        <article class="card" data-cat="action">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 120">⛏️</div>
+            <div><h3>FableWorld</h3><span class="chip" data-i18n="g.fableworld.c">복셀 샌드박스</span></div>
+          </div>
+          <p data-i18n="g.fableworld.d">복셀로 빚은 세계를 파고, 짓고, 탐험하는 샌드박스.</p>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 330">🍬</div>
+            <div><h3>Sweet Crunch</h3><span class="chip" data-i18n="g.sweetcrunch.c">매치3 퍼즐</span></div>
+          </div>
+          <p data-i18n="g.sweetcrunch.d">달콤한 캔디를 세 개씩 맞추는 정통 매치3 퍼즐.</p>
+        </article>
+        <article class="card" data-cat="card">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 0">🎴</div>
+            <div><h3 data-i18n="g.matgo.n">맞고</h3><span class="chip" data-i18n="g.matgo.c">화투 · 고스톱</span></div>
+          </div>
+          <p data-i18n="g.matgo.d">두 명이서 겨루는 한국식 맞고, 손맛 그대로.</p>
+        </article>
+        <article class="card" data-cat="defense">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 260">🛡️</div>
+            <div><h3>MergeDefense</h3><span class="chip" data-i18n="g.mergedefense.c">머지 디펜스</span></div>
+          </div>
+          <p data-i18n="g.mergedefense.d">2048 머지와 자동전투 디펜스를 한 판에 담았습니다.</p>
+        </article>
+        <article class="card" data-cat="defense">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 150">♠️</div>
+            <div><h3>Poker Defense</h3><span class="chip" data-i18n="g.pokerdefense.c">포커 디펜스</span></div>
+          </div>
+          <p data-i18n="g.pokerdefense.d">포커 족보로 유닛을 뽑아 적을 막는 전략 디펜스.</p>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 20">🚀</div>
+            <div><h3>Rocket Merge</h3><span class="chip" data-i18n="g.rocketmerge.c">머지 퍼즐</span></div>
+          </div>
+          <p data-i18n="g.rocketmerge.d">로켓을 합쳐 더 크고 더 높이 쏘아 올리는 머지 퍼즐.</p>
+        </article>
+        <article class="card" data-cat="idle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 280">⚔️</div>
+            <div><h3 data-i18n="g.resetknight.n">리셋 나이트</h3><span class="chip" data-i18n="g.resetknight.c">로그라이트 방치형 RPG</span></div>
+          </div>
+          <p data-i18n="g.resetknight.d">죽고, 리셋하고, 더 강해져서 돌아오는 방치형 RPG.</p>
+        </article>
+        <article class="card" data-cat="action">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 100">🐍</div>
+            <div><h3>Snake Arena</h3><span class="chip" data-i18n="g.snakearena.c">아케이드</span></div>
+          </div>
+          <p data-i18n="g.snakearena.d">아레나에서 몸집을 불리며 살아남는 스네이크 서바이벌.</p>
+        </article>
+        <article class="card" data-cat="card">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 220">🃏</div>
+            <div><h3>Solitaire</h3><span class="chip" data-i18n="g.solitaire.c">카드</span></div>
+          </div>
+          <p data-i18n="g.solitaire.d">클론다이크와 프리셀, 두 가지 솔리테어를 하나의 앱에.</p>
+        </article>
+        <article class="card" data-cat="idle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 245">🛸</div>
+            <div><h3 data-i18n="g.stellar.n">스텔라 커맨드</h3><span class="chip" data-i18n="g.stellar.c">우주 전략 방치형</span></div>
+          </div>
+          <p data-i18n="g.stellar.d">함대를 키우고 은하를 넓혀가는 우주 전략 방치형.</p>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 200">🔢</div>
+            <div><h3>Sudoku</h3><span class="chip" data-i18n="g.sudoku.c">스도쿠</span></div>
+          </div>
+          <p data-i18n="g.sudoku.d">매일 새 퍼즐이 열리는 깔끔한 스도쿠.</p>
+        </article>
+        <article class="card" data-cat="action">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 265">🌙</div>
+            <div><h3 data-i18n="g.midnight.n">미드나잇 서바이버즈</h3><span class="chip" data-i18n="g.midnight.c">불릿헤븐 서바이벌</span></div>
+          </div>
+          <p data-i18n="g.midnight.d">밤마다 몰려오는 무리 속에서 살아남는 불릿헤븐 액션.</p>
+        </article>
+        <article class="card" data-cat="defense">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 300">🗼</div>
+            <div><h3>Neon Siege</h3><span class="chip" data-i18n="g.neonsiege.c">타워 디펜스</span></div>
+          </div>
+          <p data-i18n="g.neonsiege.d">네온 불빛 아래 타워를 세우고 웨이브를 막아내는 디펜스.</p>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <div class="app-icon" style="--h: 175">🧪</div>
+            <div><h3>Water Sort</h3><span class="chip" data-i18n="g.watersort.c">정렬 퍼즐</span></div>
+          </div>
+          <p data-i18n="g.watersort.d">색색의 물을 옮겨 담아 정리하는 힐링 정렬 퍼즐.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="contact-box">
+        <div>
+          <p class="mono sec-eyebrow">Contact</p>
+          <h2 class="sec-title" style="margin-bottom:6px" data-i18n="contact.title">함께 만들거나, 그냥 인사하거나</h2>
+          <p class="sec-desc" data-i18n="contact.desc">게임 문의, 퍼블리싱, 버그 제보 — 무엇이든 환영합니다.</p>
+        </div>
+        <div class="links">
+          <a class="btn primary" href="https://github.com/ArcticGame/feedback/issues/new" rel="noopener" data-i18n="contact.feedback">피드백 남기기</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between;width:100%">
+    <span>© 2026 Arctic Game. All rights reserved.</span>
+    <span>❄ Made in the cold, played everywhere.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* ── 다국어 (KO / EN) ─────────────────────── */
+  var I18N = {
+    ko: {
+      _desc: "Arctic Game — 퍼즐부터 디펜스까지, 아트와 사운드까지 직접 만드는 인디 게임 스튜디오",
+      "aria.nav": "주요 메뉴",
+      "aria.lang": "언어 선택",
+      "aria.filters": "장르 필터",
+      "nav.studio": "스튜디오",
+      "nav.games": "게임",
+      "nav.contact": "문의",
+      "hero.title": '빙하처럼 단단하게,<br><span class="glow">오로라처럼 빛나게.</span>',
+      "hero.lede": "Arctic Game은 퍼즐부터 디펜스, 방치형 RPG까지 — 모든 코드와 아트, 사운드를 직접 만드는 인디 게임 스튜디오입니다. 가벼운 빌드로 모바일과 데스크톱, 웹을 넘나듭니다.",
+      "hero.cta": "게임 보러 가기",
+      "stats.games": "개발 중인 게임",
+      "stats.platforms": "지원 플랫폼",
+      "stats.assets": "오리지널 아트 · 사운드",
+      "studio.title": "작은 팀, 얼음처럼 매끄러운 게임",
+      "studio.desc": "유행하는 장르를 빠르게 연구하고, 메커니즘은 배우되 아트·사운드·이름은 전부 새로 만듭니다. 가벼운 네이티브 빌드로 어떤 기기에서든 부드럽게 돌아가는 게임이 목표입니다.",
+      "pillar1.t": "가볍고 빠르게",
+      "pillar1.d": "가벼운 네이티브 빌드로 iOS · Android · macOS · Windows · Linux · 웹까지 하나의 코드로 대응합니다.",
+      "pillar2.t": "100% 오리지널 에셋",
+      "pillar2.d": "모든 게임의 아트와 사운드, 이름을 직접 제작합니다. 절차 생성과 AI 파이프라인을 적극 활용해 작은 팀의 속도를 냅니다.",
+      "pillar3.t": "빠른 실험, 넓은 장르",
+      "pillar3.d": "퍼즐, 디펜스, 카드, 방치형, 서바이벌 — 장르를 가리지 않고 프로토타입에서 출시까지 짧은 주기로 달립니다.",
+      "games.title": "지금 만들고 있는 게임들",
+      "games.desc": "18종의 게임이 개발·출시 준비 중입니다. 장르별로 골라 보세요.",
+      "filter.all": "전체",
+      "filter.puzzle": "퍼즐",
+      "filter.defense": "디펜스",
+      "filter.idle": "방치형 · 전략",
+      "filter.card": "카드 · 보드",
+      "filter.action": "액션 · 아케이드",
+      "g.blockpop.c": "탭 블라스트 퍼즐",
+      "g.blockpop.d": "같은 색 블록을 탭해서 한 번에 터뜨리는 시원한 블라스트 퍼즐.",
+      "g.blockpuz.c": "8×8 블록 퍼즐",
+      "g.blockpuz.d": "8×8 보드에 조각을 채우고 줄을 지우는 클래식 블록 퍼즐.",
+      "g.bubblepop.c": "버블 슈터",
+      "g.bubblepop.d": "조준하고, 쏘고, 터뜨리는 클래식 버블 슈터.",
+      "g.clanidle.c": "건설 · 약탈 전략",
+      "g.clanidle.d": "마을을 짓고 AI 마을을 약탈하는 네트워크 없는 싱글 전략.",
+      "g.fableworld.c": "복셀 샌드박스",
+      "g.fableworld.d": "복셀로 빚은 세계를 파고, 짓고, 탐험하는 샌드박스.",
+      "g.sweetcrunch.c": "매치3 퍼즐",
+      "g.sweetcrunch.d": "달콤한 캔디를 세 개씩 맞추는 정통 매치3 퍼즐.",
+      "g.matgo.n": "맞고",
+      "g.matgo.c": "화투 · 고스톱",
+      "g.matgo.d": "두 명이서 겨루는 한국식 맞고, 손맛 그대로.",
+      "g.mergedefense.c": "머지 디펜스",
+      "g.mergedefense.d": "2048 머지와 자동전투 디펜스를 한 판에 담았습니다.",
+      "g.pokerdefense.c": "포커 디펜스",
+      "g.pokerdefense.d": "포커 족보로 유닛을 뽑아 적을 막는 전략 디펜스.",
+      "g.rocketmerge.c": "머지 퍼즐",
+      "g.rocketmerge.d": "로켓을 합쳐 더 크고 더 높이 쏘아 올리는 머지 퍼즐.",
+      "g.resetknight.n": "리셋 나이트",
+      "g.resetknight.c": "로그라이트 방치형 RPG",
+      "g.resetknight.d": "죽고, 리셋하고, 더 강해져서 돌아오는 방치형 RPG.",
+      "g.snakearena.c": "아케이드",
+      "g.snakearena.d": "아레나에서 몸집을 불리며 살아남는 스네이크 서바이벌.",
+      "g.solitaire.c": "카드",
+      "g.solitaire.d": "클론다이크와 프리셀, 두 가지 솔리테어를 하나의 앱에.",
+      "g.stellar.n": "스텔라 커맨드",
+      "g.stellar.c": "우주 전략 방치형",
+      "g.stellar.d": "함대를 키우고 은하를 넓혀가는 우주 전략 방치형.",
+      "g.sudoku.c": "스도쿠",
+      "g.sudoku.d": "매일 새 퍼즐이 열리는 깔끔한 스도쿠.",
+      "g.midnight.n": "미드나잇 서바이버즈",
+      "g.midnight.c": "불릿헤븐 서바이벌",
+      "g.midnight.d": "밤마다 몰려오는 무리 속에서 살아남는 불릿헤븐 액션.",
+      "g.neonsiege.c": "타워 디펜스",
+      "g.neonsiege.d": "네온 불빛 아래 타워를 세우고 웨이브를 막아내는 디펜스.",
+      "g.watersort.c": "정렬 퍼즐",
+      "g.watersort.d": "색색의 물을 옮겨 담아 정리하는 힐링 정렬 퍼즐.",
+      "contact.title": "함께 만들거나, 그냥 인사하거나",
+      "contact.desc": "게임 문의, 퍼블리싱, 버그 제보 — 무엇이든 환영합니다.",
+      "contact.feedback": "피드백 남기기"
+    },
+    en: {
+      _desc: "Arctic Game — an indie game studio making everything from puzzles to defense games, art and sound included",
+      "aria.nav": "Main menu",
+      "aria.lang": "Language",
+      "aria.filters": "Genre filter",
+      "nav.studio": "Studio",
+      "nav.games": "Games",
+      "nav.contact": "Contact",
+      "hero.title": 'Solid as a glacier,<br><span class="glow">bright as the aurora.</span>',
+      "hero.lede": "Arctic Game is an indie game studio crafting everything from puzzles to defense and idle RPGs — all code, art, and sound made in-house. Our lightweight builds run on mobile, desktop, and the web.",
+      "hero.cta": "Browse our games",
+      "stats.games": "Games in development",
+      "stats.platforms": "Platforms supported",
+      "stats.assets": "Original art & sound",
+      "studio.title": "A small team, games smooth as ice",
+      "studio.desc": "We study trending genres fast — learning the mechanics while creating all-new art, sound, and names. The goal: lightweight native builds that run silky-smooth on any device.",
+      "pillar1.t": "Lightweight & Fast",
+      "pillar1.d": "Lightweight native builds cover iOS, Android, macOS, Windows, Linux, and the web from a single codebase.",
+      "pillar2.t": "100% Original Assets",
+      "pillar2.d": "Every game's art, sound, and name is made in-house. Procedural generation and AI pipelines give our small team big-team speed.",
+      "pillar3.t": "Fast Experiments, Broad Genres",
+      "pillar3.d": "Puzzle, defense, cards, idle, survival — we sprint from prototype to launch in short cycles, no genre off-limits.",
+      "games.title": "Games in the works",
+      "games.desc": "18 games are in development or heading to launch. Filter by genre.",
+      "filter.all": "All",
+      "filter.puzzle": "Puzzle",
+      "filter.defense": "Defense",
+      "filter.idle": "Idle · Strategy",
+      "filter.card": "Card · Board",
+      "filter.action": "Action · Arcade",
+      "g.blockpop.c": "Tap-blast puzzle",
+      "g.blockpop.d": "Tap groups of same-colored blocks and blast them all at once.",
+      "g.blockpuz.c": "8×8 block puzzle",
+      "g.blockpuz.d": "Fill an 8×8 board with pieces and clear the lines — a timeless block puzzle.",
+      "g.bubblepop.c": "Bubble shooter",
+      "g.bubblepop.d": "Aim, shoot, pop — the classic bubble shooter.",
+      "g.clanidle.c": "Build & raid strategy",
+      "g.clanidle.d": "Build your village and raid AI villages — single-player strategy, no network needed.",
+      "g.fableworld.c": "Voxel sandbox",
+      "g.fableworld.d": "Dig, build, and explore a world sculpted from voxels.",
+      "g.sweetcrunch.c": "Match-3 puzzle",
+      "g.sweetcrunch.d": "Match sweet candies three at a time in a classic match-3 puzzle.",
+      "g.matgo.n": "Matgo",
+      "g.matgo.c": "Hwatu · Go-Stop",
+      "g.matgo.d": "Two-player Korean Matgo with all the authentic feel.",
+      "g.mergedefense.c": "Merge defense",
+      "g.mergedefense.d": "2048-style merging meets auto-battle defense on a single board.",
+      "g.pokerdefense.c": "Poker defense",
+      "g.pokerdefense.d": "Draw poker hands to summon units and hold the line.",
+      "g.rocketmerge.c": "Merge puzzle",
+      "g.rocketmerge.d": "Merge rockets to build them bigger and launch them higher.",
+      "g.resetknight.n": "Reset Knight",
+      "g.resetknight.c": "Roguelite idle RPG",
+      "g.resetknight.d": "Die, reset, and come back stronger in this idle RPG.",
+      "g.snakearena.c": "Arcade",
+      "g.snakearena.d": "Grow your snake and outlast everyone in the arena.",
+      "g.solitaire.c": "Cards",
+      "g.solitaire.d": "Klondike and FreeCell — two solitaires in one app.",
+      "g.stellar.n": "Stellar Command",
+      "g.stellar.c": "Space strategy idle",
+      "g.stellar.d": "Grow your fleet and expand across the galaxy in this idle space strategy.",
+      "g.sudoku.c": "Sudoku",
+      "g.sudoku.d": "A clean sudoku with a fresh puzzle every day.",
+      "g.midnight.n": "Midnight Survivors",
+      "g.midnight.c": "Bullet-heaven survival",
+      "g.midnight.d": "Survive the hordes that swarm in every night — bullet-heaven action.",
+      "g.neonsiege.c": "Tower defense",
+      "g.neonsiege.d": "Raise towers under the neon lights and hold back the waves.",
+      "g.watersort.c": "Sorting puzzle",
+      "g.watersort.d": "Pour and sort colored water — a soothing sorting puzzle.",
+      "contact.title": "Team up with us, or just say hi",
+      "contact.desc": "Game inquiries, publishing, bug reports — everything is welcome.",
+      "contact.feedback": "Leave feedback"
+    }
+  };
+
+  var langButtons = document.querySelectorAll(".lang-switch button");
+
+  function applyLang(lang) {
+    var d = I18N[lang] || I18N.ko;
+    document.documentElement.lang = lang;
+    document.querySelector('meta[name="description"]').setAttribute("content", d._desc);
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var v = d[el.getAttribute("data-i18n")];
+      if (v != null) el.textContent = v;
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(function (el) {
+      var v = d[el.getAttribute("data-i18n-html")];
+      if (v != null) el.innerHTML = v;
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
+      var v = d[el.getAttribute("data-i18n-aria")];
+      if (v != null) el.setAttribute("aria-label", v);
+    });
+    langButtons.forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-lang") === lang ? "true" : "false");
+    });
+  }
+
+  /* 현재는 영어만 노출. 한국어를 다시 켜려면 lang-switch 마크업을 복원하고
+     여기서 브라우저 언어 감지로 되돌리면 됨. */
+  applyLang("en");
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ── 오로라 캔버스 ── */
+  var aurora = document.getElementById("aurora");
+  var actx = aurora.getContext("2d");
+  var SCALE = 0.25; /* 저해상도 렌더 + CSS 블러로 부드러운 오로라 */
+  var ribbons = [
+    { color: "47,191,155", y: 0.36, amp: 0.10, freq: 1.6, speed: 0.00040, thick: 0.16 },
+    { color: "138,123,240", y: 0.28, amp: 0.08, freq: 2.3, speed: -0.00028, thick: 0.12 },
+    { color: "79,183,223", y: 0.48, amp: 0.12, freq: 1.1, speed: 0.00020, thick: 0.14 }
+  ];
+  function sizeAurora() {
+    var r = aurora.parentElement.getBoundingClientRect();
+    aurora.width = Math.max(2, r.width * SCALE);
+    aurora.height = Math.max(2, r.height * SCALE);
+  }
+  function drawAurora(t) {
+    var w = aurora.width, h = aurora.height;
+    actx.clearRect(0, 0, w, h);
+    actx.globalCompositeOperation = "lighter";
+    ribbons.forEach(function (rb) {
+      actx.beginPath();
+      for (var x = 0; x <= w; x += 4) {
+        var y = h * rb.y + Math.sin(x / w * Math.PI * rb.freq + t * rb.speed) * h * rb.amp;
+        if (x === 0) actx.moveTo(x, y); else actx.lineTo(x, y);
+      }
+      for (var x2 = w; x2 >= 0; x2 -= 4) {
+        var y2 = h * rb.y + Math.sin(x2 / w * Math.PI * rb.freq + t * rb.speed + 0.9) * h * rb.amp + h * rb.thick;
+        actx.lineTo(x2, y2);
+      }
+      actx.closePath();
+      var g = actx.createLinearGradient(0, h * (rb.y - rb.amp), 0, h * (rb.y + rb.amp + rb.thick));
+      g.addColorStop(0, "rgba(" + rb.color + ",0)");
+      g.addColorStop(0.5, "rgba(" + rb.color + ",0.55)");
+      g.addColorStop(1, "rgba(" + rb.color + ",0)");
+      actx.fillStyle = g;
+      actx.fill();
+    });
+    actx.globalCompositeOperation = "source-over";
+  }
+
+  /* ── 눈 캔버스 ── */
+  var snow = document.getElementById("snow");
+  var sctx = snow.getContext("2d");
+  var flakes = [];
+  function sizeSnow() {
+    var r = snow.parentElement.getBoundingClientRect();
+    snow.width = r.width;
+    snow.height = r.height;
+    flakes = [];
+    var n = Math.min(70, Math.floor(r.width / 18));
+    for (var i = 0; i < n; i++) {
+      flakes.push({
+        x: Math.random() * snow.width,
+        y: Math.random() * snow.height,
+        r: 0.6 + Math.random() * 1.7,
+        vy: 0.15 + Math.random() * 0.4,
+        vx: -0.1 + Math.random() * 0.2,
+        a: 0.25 + Math.random() * 0.5
+      });
+    }
+  }
+  function drawSnow() {
+    sctx.clearRect(0, 0, snow.width, snow.height);
+    sctx.fillStyle = "#DCEBF4";
+    flakes.forEach(function (f) {
+      sctx.globalAlpha = f.a;
+      sctx.beginPath();
+      sctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      sctx.fill();
+      f.y += f.vy;
+      f.x += f.vx;
+      if (f.y > snow.height + 4) { f.y = -4; f.x = Math.random() * snow.width; }
+      if (f.x < -4) f.x = snow.width + 4;
+      if (f.x > snow.width + 4) f.x = -4;
+    });
+    sctx.globalAlpha = 1;
+  }
+
+  function resize() { sizeAurora(); sizeSnow(); }
+  resize();
+  window.addEventListener("resize", resize);
+
+  if (reduced) {
+    drawAurora(0);
+    drawSnow();
+  } else {
+    (function loop(t) {
+      drawAurora(t || 0);
+      drawSnow();
+      requestAnimationFrame(loop);
+    })(0);
+  }
+
+  /* ── 장르 필터 ── */
+  var buttons = document.querySelectorAll(".filters button");
+  var cards = document.querySelectorAll(".card");
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+      var f = btn.getAttribute("data-filter");
+      cards.forEach(function (c) {
+        c.classList.toggle("hide", f !== "all" && c.getAttribute("data-cat") !== f);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
