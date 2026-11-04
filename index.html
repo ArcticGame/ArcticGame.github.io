@@ -68,7 +68,7 @@
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 { font-family: "Jua", "Apple SD Gothic Neo", sans-serif; font-weight: 400; text-wrap: balance; }
+  h1, h2, h3, h4 { font-family: "Jua", "Apple SD Gothic Neo", sans-serif; font-weight: 400; text-wrap: balance; }
   a { color: var(--accent-ink); }
   a:focus-visible, button:focus-visible {
     outline: 2px solid var(--accent);
@@ -154,23 +154,6 @@
   }
   .cta:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(47, 191, 155, 0.4); }
 
-  .hero-stats {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 48px;
-    padding-bottom: 56px;
-  }
-  .hero-stats div { display: flex; flex-direction: column; }
-  .hero-stats .num {
-    font-family: "Jua", sans-serif;
-    font-size: 1.7rem;
-    color: var(--night-ink);
-    font-variant-numeric: tabular-nums;
-  }
-  .hero-stats .label { color: var(--night-soft); font-size: 0.82rem; }
-
   /* Glacier ridge below the hero */
   .ridge { display: block; width: 100%; height: 70px; margin-top: -1px; }
 
@@ -229,6 +212,11 @@
     border-color: var(--accent);
     color: #F2FAFE;
   }
+  .game-group + .game-group { margin-top: 48px; }
+  .group-title { font-size: 1.6rem; margin-bottom: 8px; }
+  .group-desc { color: var(--ink-soft); margin-bottom: 22px; }
+  .play-link { background: var(--accent); color: #F2FAFE; border-radius: 8px; padding: 9px 14px; text-align: center; text-decoration: none; font-weight: 500; }
+  .play-link:hover { text-decoration: underline; }
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -257,7 +245,7 @@
     background: linear-gradient(145deg, hsl(var(--h), 62%, 62%), hsl(calc(var(--h) + 28), 58%, 46%));
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
   }
-  .card h3 { font-size: 1.08rem; line-height: 1.3; }
+  .card h4 { font-size: 1.08rem; line-height: 1.3; }
   .chip {
     display: inline-block;
     font-size: 0.72rem;
@@ -269,6 +257,10 @@
     margin-top: 3px;
   }
   .card p { color: var(--ink-soft); font-size: 0.88rem; }
+
+  .detail-link { margin-top: auto; font-weight: 500; text-decoration: none; padding-top: 8px; }
+  .detail-link:hover { text-decoration: underline; }
+  .card .release-status { font-size: .75rem; color: var(--accent-ink); }
 
   /* ── Contact ───────────────────────────────── */
   .contact-box {
@@ -349,11 +341,6 @@
       <a class="cta" href="#games">Browse our games</a>
     </div>
 
-    <div class="wrap hero-stats" style="padding-left:0;padding-right:0">
-      <div><span class="num">18</span><span class="label">Games in development</span></div>
-      <div><span class="num">6</span><span class="label">Platforms supported</span></div>
-      <div><span class="num">100%</span><span class="label">Original art &amp; sound</span></div>
-    </div>
   </div>
   <svg class="ridge" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true">
     <path d="M0 70 L0 42 L180 18 L340 48 L520 8 L700 38 L880 14 L1060 44 L1240 20 L1440 40 L1440 70 Z" fill="var(--bg)"/>
@@ -375,8 +362,8 @@
         </div>
         <div class="pillar">
           <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.5 6 6.5.5-5 4.3 1.6 6.2L12 16.5 6.4 20l1.6-6.2-5-4.3 6.5-.5L12 3Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
-          <h3>100% Original Assets</h3>
-          <p>Every game's art, sound, and name is made in-house. Procedural generation and AI pipelines give our small team big-team speed.</p>
+          <h3>Made for Play</h3>
+          <p>We focus on clear rules, satisfying feedback, and the small details that make playing fun.</p>
         </div>
         <div class="pillar">
           <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div>
@@ -390,8 +377,8 @@
   <section id="games">
     <div class="wrap">
       <p class="mono sec-eyebrow">Games</p>
-      <h2 class="sec-title">Games in the works</h2>
-      <p class="sec-desc">18 games are in development or heading to launch. Filter by genre.</p>
+      <h2 class="sec-title">Find your next game</h2>
+      <p class="sec-desc">Browse released games and see what we are working on next. Filter both collections by genre.</p>
 
       <div class="filters" role="group" aria-label="Genre filter">
         <button type="button" data-filter="all" aria-pressed="true">All</button>
@@ -402,133 +389,187 @@
         <button type="button" data-filter="action" aria-pressed="false">Action · Arcade</button>
       </div>
 
-      <div class="grid">
+      <div class="game-group" role="region" aria-labelledby="released-games">
+        <h3 class="group-title" id="released-games">Released games</h3>
+        <p class="group-desc">Find your next game on Google Play.</p>
+        <div class="grid">
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <img class="app-icon" src="games/blockpuz/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>BlockPuz</h4><span class="chip">8×8 block puzzle</span></div>
+          </div>
+          <p>Fill an 8×8 board with pieces and clear the lines — a timeless block puzzle.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/blockpuz/" aria-label="Explore BlockPuz">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.blockpuz">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="defense">
+          <div class="card-top">
+            <img class="app-icon" src="games/poker-defense/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>Poker Defense</h4><span class="chip">Poker defense</span></div>
+          </div>
+          <p>Draw poker hands to summon units and hold the line.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/poker-defense/" aria-label="Explore Poker Defense">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.pokerdefense">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="action">
+          <div class="card-top">
+            <img class="app-icon" src="games/snake/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>Snake Arena</h4><span class="chip">Arcade</span></div>
+          </div>
+          <p>Grow your snake and outlast everyone in the arena.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/snake/" aria-label="Explore Snake Arena">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.snake">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <img class="app-icon" src="games/sudoku/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>Sudoku</h4><span class="chip">Sudoku</span></div>
+          </div>
+          <p>A clean sudoku with a fresh puzzle every day.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/sudoku/" aria-label="Explore Sudoku">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.sudoku">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="action">
+          <div class="card-top">
+            <img class="app-icon" src="games/midnight-survivors/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>Midnight Survivors</h4><span class="chip">Bullet-heaven survival</span></div>
+          </div>
+          <p>Survive the hordes that swarm in every night — bullet-heaven action.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/midnight-survivors/" aria-label="Explore Midnight Survivors">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.survivors">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top">
+            <img class="app-icon" src="games/water-sort/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>Water Sort</h4><span class="chip">Sorting puzzle</span></div>
+          </div>
+          <p>Pour and sort colored water — a soothing sorting puzzle.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/water-sort/" aria-label="Explore Water Sort">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.watersort">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top"><img class="app-icon" src="games/airdoku/icon.png" width="52" height="52" alt="" loading="lazy"><div><h4>Airdoku</h4><span class="chip">Logic puzzle</span></div></div>
+          <p>A sky-themed logic puzzle: place a plane in every colored zone without letting any two touch. Clear a quick board or come back for the daily puzzle.</p><p class="release-status">Released</p>
+          <a class="detail-link" href="games/airdoku/" aria-label="Explore Airdoku">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.runwaylogic">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="card">
+          <div class="card-top">
+            <img class="app-icon" src="games/solitaire/icon.png" width="52" height="52" alt="" loading="lazy">
+            <div><h4>Solitaire</h4><span class="chip">Cards</span></div>
+          </div>
+          <p>Klondike and FreeCell — two solitaires in one app.</p>
+          <p class="release-status">Released</p>
+          <a class="detail-link" href="games/solitaire/" aria-label="Explore Solitaire">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.solitaire">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="defense">
+          <div class="card-top"><img class="app-icon" src="games/poker-defense-kingdom/icon.png" width="52" height="52" alt="" loading="lazy"><div><h4>Poker Defense: Kingdom TD</h4><span class="chip">Card defense</span></div></div>
+          <p>Build a fighting force from poker hands in this fantasy take on random defense. Chase stronger combinations and merge your units to face the next boss.</p><p class="release-status">Released</p>
+          <a class="detail-link" href="games/poker-defense-kingdom/" aria-label="Explore Poker Defense: Kingdom TD">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.pokerdefense2">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="card" data-cat="puzzle">
+          <div class="card-top"><img class="app-icon" src="games/tile-match/icon.png" width="52" height="52" alt="" loading="lazy"><div><h4>Tile Match</h4><span class="chip">Triple tile puzzle</span></div></div>
+          <p>Uncover layers of charming tiles and gather matching triples. Keep an eye on your seven-slot tray as you plan the next satisfying clear.</p><p class="release-status">Released</p>
+          <a class="detail-link" href="games/tile-match/" aria-label="Explore Tile Match">Explore game <span aria-hidden="true">→</span></a>
+          <a class="play-link" href="https://play.google.com/store/apps/details?id=io.github.henjoon.tilematch">Google Play <span aria-hidden="true">↗</span></a>
+        </article>
+        </div>
+      </div>
+
+      <div class="game-group" role="region" aria-labelledby="development-games">
+        <h3 class="group-title" id="development-games">In development</h3>
+        <p class="group-desc">A preview of what is next, including games in testing.</p>
+        <div class="grid">
         <article class="card" data-cat="puzzle">
           <div class="card-top">
             <div class="app-icon" style="--h: 8">💥</div>
-            <div><h3>BlockPop</h3><span class="chip">Tap-blast puzzle</span></div>
+            <div><h4>BlockPop</h4><span class="chip">Tap-blast puzzle</span></div>
           </div>
           <p>Tap groups of same-colored blocks and blast them all at once.</p>
         </article>
         <article class="card" data-cat="puzzle">
           <div class="card-top">
-            <div class="app-icon" style="--h: 210">🧱</div>
-            <div><h3>BlockPuz</h3><span class="chip">8×8 block puzzle</span></div>
-          </div>
-          <p>Fill an 8×8 board with pieces and clear the lines — a timeless block puzzle.</p>
-        </article>
-        <article class="card" data-cat="puzzle">
-          <div class="card-top">
             <div class="app-icon" style="--h: 190">🫧</div>
-            <div><h3>BubblePop</h3><span class="chip">Bubble shooter</span></div>
+            <div><h4>BubblePop</h4><span class="chip">Bubble shooter</span></div>
           </div>
           <p>Aim, shoot, pop — the classic bubble shooter.</p>
         </article>
         <article class="card" data-cat="idle">
           <div class="card-top">
             <div class="app-icon" style="--h: 30">🏰</div>
-            <div><h3>ClanIdle</h3><span class="chip">Build &amp; raid strategy</span></div>
+            <div><h4>ClanIdle</h4><span class="chip">Build &amp; raid strategy</span></div>
           </div>
           <p>Build your village and raid AI villages — single-player strategy, no network needed.</p>
         </article>
         <article class="card" data-cat="action">
           <div class="card-top">
             <div class="app-icon" style="--h: 120">⛏️</div>
-            <div><h3>FableWorld</h3><span class="chip">Voxel sandbox</span></div>
+            <div><h4>FableWorld</h4><span class="chip">Voxel sandbox</span></div>
           </div>
           <p>Dig, build, and explore a world sculpted from voxels.</p>
         </article>
         <article class="card" data-cat="puzzle">
           <div class="card-top">
             <div class="app-icon" style="--h: 330">🍬</div>
-            <div><h3>Sweet Crunch</h3><span class="chip">Match-3 puzzle</span></div>
+            <div><h4>Sweet Crunch</h4><span class="chip">Match-3 puzzle</span></div>
           </div>
           <p>Match sweet candies three at a time in a classic match-3 puzzle.</p>
         </article>
         <article class="card" data-cat="card">
           <div class="card-top">
             <div class="app-icon" style="--h: 0">🎴</div>
-            <div><h3>Matgo</h3><span class="chip">Hwatu · Go-Stop</span></div>
+            <div><h4>Matgo</h4><span class="chip">Hwatu · Go-Stop</span></div>
           </div>
           <p>Two-player Korean Matgo with all the authentic feel.</p>
         </article>
         <article class="card" data-cat="defense">
           <div class="card-top">
             <div class="app-icon" style="--h: 260">🛡️</div>
-            <div><h3>MergeDefense</h3><span class="chip">Merge defense</span></div>
+            <div><h4>MergeDefense</h4><span class="chip">Merge defense</span></div>
           </div>
           <p>2048-style merging meets auto-battle defense on a single board.</p>
-        </article>
-        <article class="card" data-cat="defense">
-          <div class="card-top">
-            <div class="app-icon" style="--h: 150">♠️</div>
-            <div><h3>Poker Defense</h3><span class="chip">Poker defense</span></div>
-          </div>
-          <p>Draw poker hands to summon units and hold the line.</p>
         </article>
         <article class="card" data-cat="puzzle">
           <div class="card-top">
             <div class="app-icon" style="--h: 20">🚀</div>
-            <div><h3>Rocket Merge</h3><span class="chip">Merge puzzle</span></div>
+            <div><h4>Rocket Merge</h4><span class="chip">Merge puzzle</span></div>
           </div>
           <p>Merge rockets to build them bigger and launch them higher.</p>
         </article>
         <article class="card" data-cat="idle">
           <div class="card-top">
             <div class="app-icon" style="--h: 280">⚔️</div>
-            <div><h3>Reset Knight</h3><span class="chip">Roguelite idle RPG</span></div>
+            <div><h4>Reset Knight</h4><span class="chip">Roguelite idle RPG</span></div>
           </div>
           <p>Die, reset, and come back stronger in this idle RPG.</p>
         </article>
-        <article class="card" data-cat="action">
-          <div class="card-top">
-            <div class="app-icon" style="--h: 100">🐍</div>
-            <div><h3>Snake Arena</h3><span class="chip">Arcade</span></div>
-          </div>
-          <p>Grow your snake and outlast everyone in the arena.</p>
-        </article>
-        <article class="card" data-cat="card">
-          <div class="card-top">
-            <div class="app-icon" style="--h: 220">🃏</div>
-            <div><h3>Solitaire</h3><span class="chip">Cards</span></div>
-          </div>
-          <p>Klondike and FreeCell — two solitaires in one app.</p>
-        </article>
+
         <article class="card" data-cat="idle">
           <div class="card-top">
             <div class="app-icon" style="--h: 245">🛸</div>
-            <div><h3>Stellar Command</h3><span class="chip">Space strategy idle</span></div>
+            <div><h4>Stellar Command</h4><span class="chip">Space strategy idle</span></div>
           </div>
           <p>Grow your fleet and expand across the galaxy in this idle space strategy.</p>
-        </article>
-        <article class="card" data-cat="puzzle">
-          <div class="card-top">
-            <div class="app-icon" style="--h: 200">🔢</div>
-            <div><h3>Sudoku</h3><span class="chip">Sudoku</span></div>
-          </div>
-          <p>A clean sudoku with a fresh puzzle every day.</p>
-        </article>
-        <article class="card" data-cat="action">
-          <div class="card-top">
-            <div class="app-icon" style="--h: 265">🌙</div>
-            <div><h3>Midnight Survivors</h3><span class="chip">Bullet-heaven survival</span></div>
-          </div>
-          <p>Survive the hordes that swarm in every night — bullet-heaven action.</p>
         </article>
         <article class="card" data-cat="defense">
           <div class="card-top">
             <div class="app-icon" style="--h: 300">🗼</div>
-            <div><h3>Neon Siege</h3><span class="chip">Tower defense</span></div>
+            <div><h4>Neon Siege</h4><span class="chip">Tower defense</span></div>
           </div>
           <p>Raise towers under the neon lights and hold back the waves.</p>
         </article>
-        <article class="card" data-cat="puzzle">
-          <div class="card-top">
-            <div class="app-icon" style="--h: 175">🧪</div>
-            <div><h3>Water Sort</h3><span class="chip">Sorting puzzle</span></div>
-          </div>
-          <p>Pour and sort colored water — a soothing sorting puzzle.</p>
-        </article>
+
+
+
+        </div>
       </div>
     </div>
   </section>
@@ -655,12 +696,16 @@
   /* ── Genre filter ── */
   var buttons = document.querySelectorAll(".filters button");
   var cards = document.querySelectorAll(".card");
+  var groups = document.querySelectorAll(".game-group");
   buttons.forEach(function (btn) {
     btn.addEventListener("click", function () {
       buttons.forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
       var f = btn.getAttribute("data-filter");
       cards.forEach(function (c) {
         c.classList.toggle("hide", f !== "all" && c.getAttribute("data-cat") !== f);
+      });
+      groups.forEach(function (group) {
+        group.hidden = !group.querySelector(".card:not(.hide)");
       });
     });
   });
