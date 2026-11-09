@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://arcticgame.github.io/sitemap.xml
